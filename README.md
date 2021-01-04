@@ -1,22 +1,19 @@
-# creditCardFraudAnalysis
-# business analyst, machine learning, data mining, AI, data visualization
-
-
-
+# Fraud-Transactions Detection System
 
 ## Introduction
-The sale prediction models implement various machine learning tools to classify the WholeSale data base and make prediction for future inventory
-. The goal is forcus on performing cluster analyst on an inventory of a whole sale database (data was just a small sample) that data scientist can draw hypothesis from there. The full research paper can be found[ here](https://github.com/jackyhuynh/salePredictionModels-dataMining/blob/main/src/Markdown-WholeSale.pdf).
+The project focus on creating Fraud Detection Application to detect fraudulent credit card transactions. Thus, consumers and credit card companies are not paying for items that they did not purchase. According to Macaraeg (2019), the predicted worldwide non-cash transition growth from 2016 to 2020 is 12.7%. The increase in non-cash transactions leads to an increase in fraudulent transactions (Macaraeg, 2019). Even with EMV smart chips being implemented, the amount of money lost from credit card fraud is still very high. Therefore, implemented fraud detection (using data mining) is important. I also a 50 pages of fraud research (by myself) that can be found [ here](https://github.com/jackyhuynh/realtimeFraudDetectionModels-app/blob/main/src/Report.pdf).
 
-![alt](https://github.com/jackyhuynh/salePredictionModels-dataMining/blob/main/src/picture/1.PNG)
+![alt](https://github.com/jackyhuynh/realtimeFraudDetectionModels-app/blob/main/src/picture/operationDiagram.PNG)
 
-Hypothesis from plot. According to the plot, we can easily see people who buy grocery have a 100% change to buy detergent paper (and vice versa); or people who buy detergent paper will have a change of 75% to 90% to buy milk (and vice versa)... Combine the plotting and statistic together will help business to make correct decision. Please click [here](https://github.com/jackyhuynh/salePredictionModels-dataMining/blob/main/src/Markdown-WholeSale.pdf) for the full statistic and prediction. 
+My application will be build from various data minning and model prediction methods. The combination of them will increase the change to prevent fraud detection. The disadvantage of this is the response time to end-users as many layer of detection will add more execution time to application (O(log(n))).
+Please click [here](https://github.com/jackyhuynh/salePredictionModels-dataMining/blob/main/src/Markdown-WholeSale.pdf) for the full statistic and prediction. 
 
 ### Technology
 * Business Analyst
 * Machine Learning
 * Data Mining
 * Data Visualization
+* AI
 
 ### Algorithm & Methods
 * Data Exploration: Explore min, max, mean, standard deviation, correlation, and else using describe function
