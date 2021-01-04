@@ -86,7 +86,7 @@ hit "Knit" button
 ```
 ### Data Visualization:
 
-Using cluster analysis, we can see some hypothesis. According to the density-chart, fraud transactions happened from 0 to 8 AM (early morning and during sleep time) while non-fraud transactions happen during active-time. This is also common sense since humans usually purchase in the daytime, not when they sleep. Therefore, transactions that happen at night (peak at 3 PM) have more chances to happen in fraud-transactions.
+Using cluster analysis, we can see some hypothesis. According to the density-chart, fraud transactions happened from 0 to 8 AM (early morning and during sleep time) while non-fraud transactions happen during active-time. This is also common sense since humans usually purchase in the daytime, not when they sleep. Therefore, transactions that happen at night (peak at 3 PM) have more chances to happen in fraud-transactions. There is 10 more plots and thousands of test. Please click [here](https://github.com/jackyhuynh/realtimeFraudDetectionModels-app/blob/main/src/Report.pdf) for the full report.
 
 ![alt](https://github.com/jackyhuynh/realtimeFraudDetectionModels-app/blob/main/src/picture/transactionHours.PNG)
 
