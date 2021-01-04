@@ -1,0 +1,1002 @@
+---
+title: "Credit Card Fraud Detection"
+author: "Truc Huynh"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '5'
+  html_document:
+    toc: yes
+    toc_depth: '5'
+    df_print: paged
+    code_folding: hide
+  pdf_document:
+    toc: yes
+    toc_depth: 5
+    df_print: kable
+code_download: yes
+css: style.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+```{r libraries,include=FALSE, echo=FALSE}
+#library to use for the analysis
+library(psych)
+library(randomForest)
+library(e1071)
+library(rpart)
+library(rpart.plot)
+library(caTools)
+library(readr)
+library(caret)
+library(RColorBrewer)
+library(fpc)
+```
+<hr>
+## Author Information
+</br>
+<p>
+<b class="serif"><i>Name:</i></b> Truc L Huynh<br />
+<b class="serif"><i>Email:</i></b> jackyhuynh87@gmail.com<br />
+<b class="serif"><i>Phone:</i></b> <a href="tel:408-896-3449">408-896-3449</a><br />
+<b class="serif"><i>Linkdln:</i></b><a href="https://www.linkedin.com/in/truchuynhbusiness" > Truc Profile</a>
+</br>
+</p>
+<!-- End Information -->
+
+<hr>
+## Abstract
+</br>
+<p>The project focus on creating <b class="serif"><i>Credit Cards Fraud Detection</b></i> to detect fraudulent credit card transactions.  Thus, consumers and credit card companies are not paying 
+for items that they did not purchase. According to Macaraeg (2019), 
+the predicted worldwide non-cash transition <b>grows</b> from 2016 to 2020 is <a href="https://towardsdatascience.com/credit-card-fraud-detection-a1c7e1b75f59">12.7%</a>. </br>
+The increase in non-cash transactions leads to an increase in <a href="https://towardsdatascience.com/credit-card-fraud-detection-a1c7e1b75f59">fraudulent transactions</a> 
+(Macaraeg, 2019). Even with <b>EMV smart chips</b> being implemented, the amount of money lost 
+from credit card fraud is still very high. Therefore, implemented fraud detection 
+(using data mining) is important.
+</br>
+</br>
+<p><b class="serif"><i>Image retrieved from <a href="https://www.visallo.com/blog/credit-card-fraud-detection-2019/">visallo.com</a></b></i></p>
+<img src="img/dashboard.jpg" alt="dashboard" width="600" height="300" class="center"></br>
+</p>
+</br>
+<!-- End Abstract -->
+
+<hr>
+## Problem Statement
+<p>
+<i>According to Machine Learning Group (2018)</i>, the datasets contains transactions made by credit cards in September 2013 by european cardholders. This dataset presents transactions that occurred in two days, where we have 492 frauds out of <b>284,807</b> transactions. The dataset is highly unbalanced, the positive class (frauds) account for <b>0.172%</b> of all transactions.</p>
+
+<p>Since the data set is <b>highly unbalanced</b>, it would be highly <b>skewed</b>. If we use this data frame as the base for our predicted model our algorithms will probably <b class="serif"><i>overfit</b></i> since it will "assume" that most transactions <b class="serif"><i>are not fraud</b></i>. 
+</br></br>
+</p>
+<!-- End Problem Statement -->
+
+<hr>
+## Introduction{.tabset}
+
+### <b class="design">Motivation</b>
+</br>
+<p>
+  <ul>
+    <li>There are many application out there that focused on <b class="serif"><i>detect fraudulent credit card transactions</b></i> ,but most doesn't cover the whole issues. It is an interesting data mining project because it fights against <b>criminal issues</b>.</li>
+  <li>To mitigate the risk of fraudulent, fraud detection using data mining is one of them. My application can be used by credit card companies to stop fraudulent transactions at the time that transition occurs.</li>
+  <li>Measuring the accuracy using the Area Under the <b class="serif"><i>Precision-Recall Curve (AUPRC)</b></i>.</li>
+  </ul>
+<hr class="line">
+</br>
+</p>
+
+### <b class="design">Summary</b>
+</br>
+<p>
+  <ul>
+    <li>Creating Credit Cards Fraud Detection to detect fraudulent credit card transactions.</li>
+    <li>The transaction amount is relatively small. </li>
+    <li>The mean of all the mounts made is approximately USD 88.</li>
+    <li>There are no <b>"Null"</b> values, so we don't have to work on ways to replace values.</li>
+    <li>Most of the transactions were <b>Non-Fraud (99.83%)</b> of the time, while <b>Fraud</b> transactions occurs <b>(017%)</b> of the time in the data frame.</li>
+  </ul>
+<hr class="line"></br>
+</p>
+
+### <b class="design">Goals</b>
+</br>
+<p>
+  <ul>
+    <li>Create a 50/50 sub-dataframe ratio of "Fraud" and "Non-Fraud" transactions.</li>
+    <li>Design and Test possible predictive model.</li>
+    <li>Understand and learn diffrent method to solve the problem.</li>
+  </ul>
+</br>
+<hr class="line"></br>
+</p>
+
+### <b class="design">Challenges</b>
+</br>
+<p>
+  <ul>
+    <li>Data is highly unbalanced.</li>
+    <li>Too many research out there on this topic.</li>
+    <li>Not sure which one is good for review.</li>
+  </ul>
+</br>
+<hr class="line"></br>
+</p>
+
+### <b class="design">Data Description</b>
+</br>
+<p>
+  <ul>
+    <li>My dataset and has been used for many online researches about credit card fraud detection. 
+I found this raw data in <b>many articles online</b>.</li>
+    <li>After reviewing each research, I believed each author has different evaluations to detect fraud pattern.</li>
+    <li>The variables named v1 to v28 in order to maintain the privacy of the credit card users.The data set owner has applied principal component analysis(PCA) to the original features in order to reduce the features, convert them into numerical features and hide the original features (Machine Learning Group, 2018).</li>
+    <li>Data can be download at <a href="https://www.kaggle.com/mlg-ulb/creditcardfraud"> kaggle.com</a></li>
+</br>
+<hr class="line"></br>
+</p>
+
+
+### <b class="design">Approach</b>
+</br>
+<p>
+  <ol>
+    <li>The learning goal </li>
+    <li>Sampling data, selecting variables</li>
+    <li>Data pre-processing for sequence information </li>
+    <li>Selection of useful attributes </li>
+    <li>Goals matched with DM methods</li>
+    <li>Selection of data model(s), and method(s)</li>
+    <li>Review and ask for feedback to improve</li>
+    <li>Generate pattern (Data Mining)</li>
+    <li>Interpret the model(s) based on visualization</li>
+    <li>Integrate all discovered knowledge into reports, resolve any conflicts as needed</li>
+    <li>Final Review & Improve base on given feedback</li>
+  </ol>
+<hr class="line"></br>
+</p>
+### <b class="design">Result Description</b>
+</br>
+<p>
+</br>
+<hr class="line"></br>
+</p>
+
+
+<!-- End Introduction -->
+
+
+## Related Work {.tabset}
+
+### <b class="design">Patil. S., Nemade. V., & Soni, P. (Predictive Modelling)</b>{.tabset}
+#### Methods
+</br>
+<p><i>According to Patil, Nemade, & Soni. (2018)</i>,  the proposed system is used to detect the frauds on real time basis by analyzing incoming transactions. The system design consists of two components for fraud detection:</p>
+<p>
+  <ul>
+    <li><b class="design">Designing a framework for data pre-processing.</b> </li>
+    <li>Designing analytical model for fraud prediction 
+      <ol>
+        <li><b class="design">Logistic regression.</b></li>
+        <li><b class="design">Decision tree:</b> The  decision  tree  uses  <b>ID3  technique</b>  for  building  decision  tree  by  considering entropy of dataset</li>
+        <li><b class="design">Random Forest Decision Tree:</b> are supervised learning algorithms used for both classification and regression problems. These two algorithms are best explained together because random forests are a bunch of decision trees combined.</li>
+      </ol>
+    </li>
+  </ul>
+  <hr class="line"></br>
+<p>
+#### Objectives
+</br>
+<p><i>According to Patil, Nemade, & Soni (2018):</i>
+  <ul>
+    <li>In the development of modern technology financial frauds are increasing significantly and hence fraud detection is very important area. Fraud detection is very important to save the financial losses for the banks as they issue credit cards  to  customer.</li> 
+  <li>Without  knowledge  of  card  holder  use  of  the  card  information  is  a  credit  card  fraud.  There  are  two  types  of  fraud  detection  approaches:  <b class="serif"><i>misuse  detection</b></i>  and  <b class="serif"><i>anomaly  detection</b></i>.</li> 
+  <li>More conversation can be retrieved from <a href="https://www.researchgate.net/publication/325663203_Predictive_Modelling_For_Credit_Card_Fraud_Detection_Using_Data_Analytics">(PDF) Predictive Modelling For Credit Card Fraud Detection Using Data Analytics</a>.</li>
+  <hr class="line"></br>
+<p>
+#### Results
+</br>
+<p><i>According to Patil, Nemade, & Soni (2018):</i></p>
+<p><b class="serif"><i>Logistic Regression Analytical Model</b></i>: The optimal  cut-off  <b>0.18</b>  is  used  by  the  Logistic Regression Analytical Model  model  ->  <b class="serif"><i>gives  better  performance</b></i>.</p>
+  <p><b class="serif"><i>Decision Tree Analytical model</b></i>: To improve the performance of the decision tree, the most significant variable is taken from the trained model and the model is tuned  with those  most significant variables.</p>
+  <p><b class="serif"><i>Random Forest Decision Tree Analytical model:</b></i> If data points are nonlinear then single line can be limiting to the logistic regression as the <b>outlier</b> points are not handle effectively, in that case the <b>decision tree</b> performs better.</p>
+  <hr class="line"></br>
+</p>
+#### Limitation
+</br>
+<p>
+ If data points are nonlinear then single line can be limiting to the logistic regression as the outlier points are not handle effectively.</br>
+  <hr class="line"></br>
+</p>
+#### Main difference
+</br>
+<p>
+  <ul>
+  <li>Using a framework for data pre-processing.</li>
+  <li>Method to train data for model prediction</li>
+  <li>There is not much difference between what I plan (Logistic regression, decision tree,…)</li>
+  </ul>
+  <p>Reference:</br>
+Patil. S., Nemade. V., & Soni, P. (2018)  International Conference on Computational Intelligence and Data Science. <i>Predictive Modelling For Credit Card Fraud Detection Using Data Analytics.</i> Retrieved from https://www.researchgate.net/publication/325663203_Predictive_Modelling_For_Credit_Card_Fraud_Detection_Using_Data_Analytics</br></p>
+  <hr class="line"></br>
+</p>
+### {-}
+
+### <b class="design">Gabriel Preda (Machine Learning)</b>{.tabset}
+
+#### Methods
+</br>
+<p><i>Retrieved from Preda (2020):</i>
+  <ul>
+  <li><b class="design">Random Forrest Model:</b> For classification.</li>
+  <li><b class="design">AdaBoost model:</b> Is used to boost the performance of any machine learning algorithm in credit, insurance, marketing, and sales.</li>
+  <li><b class="design">CatBoost algorithm:</b> Is used for gradient boosting on decision trees. Mostly used for search, recommendation systems, personal assistant, self-driving cars, and weather prediction...</li>
+  <li><b class="design">XG Boost algorithm:</b> Is an implementation of gradient boosted decision trees designed for speed and performance.</li>
+  <li><b class="design">Light GBM algorithm:</b> Is a gradient boosting framework that uses a tree-based learning algorithm.</li>
+  </ul>
+  <hr class="line"></br>
+<p>
+
+#### Objectives
+</br>
+<p><i>Retrieved from Preda (2020)</i>:
+  <ul>
+  <li>Design a <b class="serif"><i>Predictive Model</i></b> that can detect fraud transactions based on the train data.</li>
+  <li>Make sure <b>true transaction</b> is not <i>rejected</i>.</li>
+  <li>Make sure <b>fraudulent transaction</b> is not <i>accepted</i>.</li>
+  </ul>
+  <hr class="line"></br>
+<p>
+
+#### Results
+</br>
+<p>
+  <p><i>Accoring to Preda (2020)</i>, his work included investigated the data, checking for data unbalancing, visualizing the features, and understanding the relationship between different features. He then investigated two predictive models. The data was split into 3 parts, a train set, a validation set, and a test set. For the first three models, He only used the train and test set.</p>
+  <p>The author started with <b class="serif"><i>RandomForrestClassifier</i></b>, for which he obtained an AUC score of <b>0.85</b> when predicting the target for the test set.</p>
+  <p>He followed with an <b class="serif"><i>AdaBoostClassifier model</i></b>, with a lower AUC score <b>(0.83)</b> for prediction of the test set target values.</p>
+  <p>Then followed with a <b class="serif"><i>CatBoostClassifier</i></b>, with the AUC score after training 500 iterations <b>0.86.</b></p>
+  <p>The author then experimented with an <b class="serif"><i>XGBoost model</b></i>. In this case, He used the validation set for the validation of the training model. The best validation score obtained was <b>0.984</b>. Then He used the model with the best training step, to predict the target value from the test data; the AUC score obtained was <b>0.974</b>.</p>
+  <p>He then presented the data to a <b class="serif"><i>LightGBM model</b></i>. The author used both train-validation split and cross-validation to evaluate the model effectiveness to predict 'Class' value, i.e. detecting if a transaction was fraudulent. With the first method, The author obtained the values of AUC for the validation set around <b>0.974</b>. For the test set, the score obtained was <b>0.946</b>.</p>
+  <p>With the cross-validation, He obtained an AUC score for the test prediction of <b>0.93</b>.</p>
+  <hr class="line"></br>
+<p>
+
+#### Main difference
+</br>
+<p>
+  The author is using <b>AdaBoost model, XGBoost model, CatBoostClassifier</b> for gradient boosting on decision trees. I am going to use the <b>decision tree</b>, and <b>Generalized Linear Model(GLM)</b> Model for my model, but I am not going to use any of the </b>Gradient Boost Model</b>.</p>
+  <p>Reference: </br>
+  Preda. G., (2020) Credit Card Fraud Detection Predictive Models. Retrieved from https://www.kaggle.com/gpreda/credit-card-fraud-detection-predictive-models </br>                       
+  <hr class="line"></br>
+</p>
+
+### {-}
+
+### <b class="design">Pavan Sanagapati (Outliers)</b>{.tabset}
+#### Methods
+</br>
+<p>According to Sanagapati (2019):</p>
+<p>
+  <p><b class="serif"><i>Anomaly detection</b></i> is a technique used to identify unusual patterns that do not conform to expected behavior, called outliers (Sanagapati, 2019).Anomaly detection (also outlier detection) is the identification of rare items, events, or observations that raise suspicions by differing significantly from the majority of the data.</p>
+  <p>Method used:</br>
+  <ul>
+    <li><b class="design">Isolation Forest algorithm:</b> an unsupervised machine learning algorithm that identifies anomaly by isolating outliers in the data.</li>
+    <li><b class="design">Local Outlier Factor (LOF) algorithm:</b> unsupervised anomaly detection method which computes the local density deviation of a given data point concerning its neighbors.</li>
+    <li><b class="design">Support Vector Machine (SVM) model:</b> a supervised machine learning model that uses classification algorithms for two-group classification problems.</li>
+  </ul>
+  </p>
+  <hr class="line"></br>
+<p>
+#### Objectives
+</br>
+<p>According to Sanagapati (2019):</p>
+<p>
+  <ul>
+  <li>Detect 100% of the fraudulent transactions while minimizing the incorrect fraud classifications.</li>
+  <li>Identify whether a new transaction is fraudulent or not.</li>
+  </ul>
+  <hr class="line"></br>
+<p>
+#### Results
+</br>
+<p>According to Sanagapati (2019):</p>
+<p><b class="serif"><i>Isolation Forest</b></i> detected <b>73</b> errors versus Local Outlier Factor detecting <b>97</b> errors vs. SVM detecting </b>8516<b> errors.</b></p>
+<p><b class="serif"><i>Isolation Forest</b></i> has a <b>99.74%</b> more accurate than <b class="serif"><i>LOF</b></i> of <b>99.65%</b> and <b class="serif"><i>SVM</b></i> of <b>70.09%</b></p>
+<p>When comparing error precision & recall for 3 models, the Isolation Forest performed much better than the LOF as we can see that the detection of fraud cases is around <b>27 %</b> versus LOF detection rate of just <b>2 %</b> and SVM of <b>0%</b>.</p>
+<p>So overall Isolation Forest Method <b>performed much better</b> in determining the fraud cases which is around <b>30%</b>.</p>
+<p>We can also improve on this accuracy by increasing the sample size or use deep learning algorithms however at the cost of computational expense.We can also use complex anomaly detection models to get better accuracy in determining more fraudulent cases.</p>
+  <hr class="line"></br>
+<p>
+
+#### Main difference
+</br>
+<p>The author using anomaly detection techniques, machine learning approaches, and Python for the analysis.</p>
+<p>I am going to use the decision-tree model, and Generalized Linear Model(GLM) Model: logistic regression. I also using R Programming instead of Python.</p>
+<p>Reference:</br>  
+Sanagapati. P., (2019) Anomaly Detection - Credit Card Fraud Analysis. Retrieved from https://www.kaggle.com/pavansanagapati/anomaly-detection-credit-card-fraud-analysis
+</p>
+  <hr class="line"></br>
+</p>
+### {-}
+
+
+
+<!-- End Related Work -->
+
+<hr>
+## Data Description{.tabset}
+
+### <b class="design">Data source</b> 
+</br>
+<p>
+  <ul>
+    <li>Data is retrieved from at "https://www.kaggle.com/mlg-ulb/creditcardfraud".</li>
+    <li>Data is download in to data folder.</li>
+    <li>Then We read the data in using <b>read.csv</b>. 
+    <li>Then the data will be store in 
+    the data frame <b class="design">"data"</b>.</li>
+  </ul>
+```{r importData}
+Rdata <- read.csv("~/R/DataMining/FaultAnalyst.CreditCard/data/data.csv", header=TRUE)
+
+```
+<hr class="line">
+</br>
+</p>
+### <b class="design">Data size</b> 
+<p>Number of rows</br>
+```{r dataSize}
+# Number of Rows
+nrow(Rdata)
+
+# Number of Columns
+ncol(Rdata)
+```
+<hr class="line"></br>
+</p>
+
+### <b class="design">Data attributes</b>
+</br>
+<p>
+  <ul>
+    <li>Time: Number of seconds elapsed between this transaction and the first transaction in the dataset.</li>
+    <li>V1 to V28: may be result of a PCA Dimensionality reduction to protect user identities and sensitive features(v1-v28)</li>
+    <li>Amount: Transaction amount</li>
+    <li>Class: 1 for fraudulent transactions, 0 otherwise</li>
+  </ul>
+<p>Check the original data attributes
+```{r dataAttributes}
+typeof(Rdata)
+```
+<hr class="line"></br>
+</p>
+
+### <b class="design">Main characteristics</b>
+<p>Data characteristic
+```{r mainCharacters}
+# data exploration
+str(Rdata)
+```
+<hr class="line"></br>
+</p>
+<!-- End Data frame Description -->
+
+## Data Exploration & Data Preprocess{.tabset}
+
+### <b class="design">Exploration</b>
+</p>
+Explore mean, standard deviation, correlation, and else using <b>describe</b> function.</br>
+```{r describe}
+#Explore the data
+describe(Rdata)  
+```
+<hr class="line"></br>
+</p>
+### <b class="design">Summary & Validation</b>
+</br>
+</p>
+The amount and time attributes are not scaled with the rest of the features in the data-set. These can be scaled using standard scale. However, the classes are heavily skewed.
+```{r explore}
+# check if data contain empty variable
+sum(is.na(Rdata))
+mean(is.na(Rdata))
+
+#Explore the data
+summary(Rdata) 
+```
+This function is to support the display description of internal R function and print out directly from the CRAN project library.
+```{r descriptionPrint}
+help_console <-
+  function(topic,
+           format = c("text", "html", "latex", "Rd"),
+           lines = NULL,
+           before = NULL,
+           after = NULL) {
+    format = match.arg(format)
+    if (!is.character(topic))
+      topic <- deparse(substitute(topic))
+    helpfile = utils:::.getHelpFile(help(topic))
+    
+    hs <- capture.output(switch(
+      format,
+      text = tools:::Rd2txt(helpfile),
+      html = tools:::Rd2HTML(helpfile),
+      latex = tools:::Rd2latex(helpfile),
+      Rd = tools:::prepare_Rd(helpfile)
+    ))
+    if (!is.null(lines))
+      hs <- hs[lines]
+    hs <- c(before, hs, after)
+    cat(hs, sep = "\n")
+    invisible(hs)
+  }
+```
+<hr class="line"></br>
+</p>
+
+### <b class="design">Subset for trainning</b>
+<p>Subset: Split the original data into smaller subset include (test set and train set).
+<p>Sampling: Create random sample so that we can achieve other mining task such as SVM algorithm and random forest which require a lot of resource to complete. the subset sample will include all the fraud transaction and 10,000 rows of normal transaction to test the accurate of all the predictive model. </p>
+- Rdata: 284,807 observations of 31 variables
+- train: 199,364  observations of 31 variables (training data)
+- train.subset: 7,344 observations of 31 variables (training data)
+- cv: 85,443 observations of 31 variables(test data)
+- subsetData: 10,492  observations of 31 variables (sample data/test data)
+- cv.subset: 3,148 observations of 31 variables(test data)
+- fraud.data: 492 observations of 31 variables(test data)
+```{r subset, echo=TRUE}
+# Predictive Modeling
+# Prepare Data for training
+# Split data 70:30
+Rdata$Class <- factor(Rdata$Class)
+
+set.seed(1)
+# Split data from vector data$Class into two sets in predefined ratio while preserving
+# relative ratios of different labels in data$Class. Used to split the data used during
+# classification into train and test subsets.
+split <- sample.split(Rdata$Class, SplitRatio = 0.7)
+
+train <- subset(Rdata, split == T) # train data set of the original data
+
+cv <- subset(Rdata, split == F) # test data set of the original data
+
+# CREATE SMALL SUBSET of the ORIGINAL
+# Collect all normal transaction in the original data set
+data.class.0 <- subset(Rdata, Rdata$Class == 0)
+
+# Collect all fraud transaction in the original data set
+data.class.1 <- subset(Rdata, Rdata$Class == 1)
+
+#fraud.data include all the fraud transaction
+fraud.data <- data.class.1
+
+# Get only 10,000 line of the normal transaction in the original data set
+data.class.0 <- data.class.0[1:10000, ]
+
+# Create the Subset Data
+subsetData <- rbind(data.class.0, data.class.1)
+
+rm(data.class.0,data.class.1) # Clean up/ un-use variable
+
+set.seed(10)
+split <- sample.split(subsetData$Class, SplitRatio = 0.7)
+train.subset <- subset(subsetData, split == T)
+cv.subset <- subset(subsetData, split == F)
+
+```
+<hr class="line"></br>
+
+### <b class="design">Clustering for Preparation: Elbow method</b>
+```{r transaction1}
+trans_data<-Rdata
+trans_data$Time<-NULL
+trans_data$Amount<-NULL
+trans_data$Class<-NULL
+```
+
+```{r elbowMethod}
+library(factoextra)  # library for get_dist
+k2 <- kmeans(trans_data, centers = 6, nstart = 25)
+str(k2)
+fviz_cluster(k2, data = trans_data)
+```
+
+
+## Data Mining{.tabset}
+### <b class="design">Data Visualization</b>{.tabset}
+#### Methodology
+<h5>Task Description</h5>
+<p>Using data visualization to approach the problem. The purpose is to get a general idea about the data. Also supporting the following data mining Method in the following section.</br></p>
+<h5>Algorithm and Parameter</h5>
+<p>Simply convert the Time in the data set to twenty-four hours time system. The purpose is to estimate what time fraud transaction amount usually occur.</p></br>
+
+```{r visualPreparation}
+#Copy the Rdata to DisplayData
+DisplayData<- Rdata
+
+DisplayData$hour_of_day <- (DisplayData$Time/3600) %% 24 # convert to hours, then reduce mod 24
+# to display only
+DisplayData$Class <- factor(ifelse(DisplayData$Class == 0, "zero", "one")) # creates issues later in caret if using 0, 1
+```
+<p>Using geom_density() function of ggplot2 package to visualize the possibility of fraud transaction. From there we can summary some rules and evaluate the results. Details is given below. </p>
+```{r ggplotParameter}
+# GEOM_DENSITY
+help_console('geom_density', "text", lines = 1:122, before = " ", after = " ")
+
+#GGPLOT
+help_console('ggplot', "text", lines = 1:26, before = " ", after = " ")
+```
+</br>
+
+
+#### Results
+<p>Visualization of Transaction's Hour</br>
+  <h5>Evaluation</h5>
+```{r transHoursPlot , echo=TRUE, fig.width=10}
+ggplot(DisplayData, aes(x = hour_of_day, fill = Class)) +
+  geom_density(alpha = 0.4) + 
+  scale_x_continuous(limits = c(0, 24), breaks = seq(0, 24, 2)) + 
+  labs(title = "Transaction's Hour", 
+       x = "Hours", 
+       y = "Density", 
+       col = "Class") + 
+  scale_fill_discrete(labels = c("Fraud", "Not Fraud"))
+```
+<p> <p>According to the density-chart, fraud transaction are happened from <b>0 to 8 AM</b> (early morning and during sleep time) while non-fraud transaction happen during active-time. This is also a common sense since human usually purchase in the day-time, not when they sleep. Therefore, transactions happen at night (top at 3PM) have more chance to happen fraud-transactions.</p>
+<hr class="line"></br></p>
+
+
+
+<p>Visualization of Transaction's Amount</br>
+<h5>Evaluation</h5>
+```{r transAmountPlot, echo=TRUE, fig.width=10}
+ggplot(DisplayData, aes(x = Amount, fill = Class)) +
+  geom_density(alpha = 0.4) +
+  scale_x_continuous(limits = c(0, 500), breaks = seq(0, 500, 100)) + 
+  labs(title = "Transaction Amount", 
+       x = "Amount", 
+       y = "Density", 
+       col = "Class") + 
+  scale_fill_discrete(labels = c("Fraud", "Not Fraud"))
+```
+<p><p>According to the density-chart, higher portion of the chart are at fraud-transaction. In the chart the fraud transaction value from <b>90 to over 100</b> and <b>300 to 350</b> are way more density than the nonfraud transaction. Therefore, fraud transaction may happen to be large transaction (higher proportion of fraudulent transactions take a very large value). Since the data does not mention the value of amount (US Dollar or other currency), I leave the amount blank.</p>
+<hr class="line"></br></p>
+``` {r rmDisplayData}
+# Simple remove Display Data
+rm(DisplayData)
+```
+### {-}
+
+
+### <b class="design">Generalized Linear Model</b>{.tabset}
+#### Methodology
+<h5>Task Description</h5>
+
+<p>a.	Description of each data mining task you applied to the data <b>(describe)</b> </br></p>
+<p>In statistics, the generalized linear model (GLM) is a flexible generalization of ordinary linear regression that allows for response variables that have error distribution models other than a normal distribution.</p>
+<p>glm is used to fit generalized linear models, specified by giving a symbolic description of the linear predictor and a description of the error distribution.</p>
+<p>We are going to use glm()function in R to construct our Generalized Linear Predictive Model. Please read the description about glm() function and its parameter to understand about this function.</p>
+<p>While the main function is glm() have been display in greater detail, the support table() function and predict() function also describe in shorter detail</p>
+</br>
+
+
+<h5>Algorithm and Parameter</h5>
+```{r glmParameter, echo=TRUE}
+# GLM FUNCTION
+help_console('glm',
+             "text",
+             lines = 1:110,
+             before = "<blockquote>",
+             after = "</blockquote>")
+
+# PREDICT FUNCTION
+help_console(
+  'predict',
+  "text",
+  lines = 1:28,
+  before = " ",
+  after = " "
+)
+```
+<p></br></p>
+
+
+
+#### Results
+<h5>Results</h5>
+<p>Test train data frame</p>
+```{r glmResults, echo=TRUE}
+#Base line accuracy
+table(cv$Class)
+
+#Generalized Linear Model(GLM) Model: logistic regression
+glm.model <- glm(Class ~ ., data = train, family = "binomial")
+
+# Test the train model
+glm.predict <- predict(glm.model, train, type = "response")
+
+table(train$Class, glm.predict > 0.5)
+
+```
+<p>Result: 
+- Fraud: Find 227 out of 344 fraud case(227+117), accurate percentage is 67.96%.
+- Non-Fraud: accurate percentage is 99.99%  </p></br>
+
+<p>Test with test data frame</p>
+
+```{r glmEvaluation1, echo=TRUE}
+glm.predict <- predict(glm.model, cv, type = "response")
+table(cv$Class, glm.predict > 0.5)
+```
+
+<p>Result: 
+- Fraud: Find 79 out of 148 fraud case(69+79), accurate percentage is 53.39%.
+- Non-Fraud: accurate percentage is 99.99%  </p></br>
+
+<p>Test with sample test data frame</p>
+
+```{r glmEvaluation2, echo=TRUE}
+glm.predict <- predict(glm.model, cv.subset, type = "response")
+table(cv.subset$Class, glm.predict > 0.5)
+```
+<p>Result: 
+- Fraud: Find 90 out of 148 fraud case(58+90), accurate percentage is 60.81%.
+- Non-Fraud: accurate percentage is 100%  </p></br>
+
+<p>Test with sample test data frame</p>
+```{r glmEvaluation3, echo=TRUE}
+glm.predict <- predict(glm.model, Rdata, type = "response")
+table(Rdata$Class, glm.predict > 0.5)
+
+```
+<p>Result: 
+- Fraud: Find 306 out of 492 fraud case, accurate percentage is 62.19%.
+- Non-Fraud: accurate percentage is 99.99%  </p></br>
+
+<p>Test with sample test data frame</p>
+```{r glmEvaluation4, echo=TRUE}
+glm.predict <- predict(glm.model, subsetData, type = "response")
+table(subsetData$Class, glm.predict > 0.5)
+
+```
+<p>Result: 
+- Fraud: Find 306 out of 492 fraud case, accurate percentage is 62.19%.
+- Non-Fraud: accurate percentage is 100%  </p></br>
+
+### {-}
+
+### <b class="design">Predictive Model using Decision Tree (Regression Trees)</b>{.tabset}
+#### Methodology
+<h5>Task Description</h5>
+<p>Decision tree learning is one of the predictive modeling approaches used in statistics, data mining and machine learning. It uses a decision tree (as a predictive model) to go from observations about an item (represented in the branches) to conclusions about the item's target value (represented in the leaves).</p>
+<p>We are going to use rpart()function of rpart package in R to construct our Decision Tree and Predictive Model. Please read the description about rpart function and its parameter to understand about this function.</p>
+<p>While the main function is rpart() have been display in greater detail, the support prp() function and predict() function also describe in shorter detail</p>
+</br>
+
+
+<h5>Algorithm and Parameter</h5>
+```{r decisionTreeParameter, echo=TRUE}
+# RPART FUNCTION
+help_console('rpart', "text", lines = 1:80, before = " ", after = " ")
+
+# PRP FUNCTION
+help_console('prp', "text", lines = 1:30, before = " ", after = " ")
+
+# PREDICT FUNCTION
+help_console('predict', "text", lines = 1:28, before = " ", after = " ")
+```
+<p></br></p>
+
+#### Results
+<h5>Decision tree model 1</h5>
+<p>Build the Decision tree Model using the train data subset from the original data. Methods used is classification with the minimum number of bucket is 20.</p></br>
+```{r decisionTreeResult, echo=TRUE}
+#Decision tree model
+tree.model <-
+  rpart(Class ~ .,
+        data = train,
+        method = "class",
+        minbucket = 20)
+prp(tree.model)
+tree.predict <- predict(tree.model, cv, type = "class")
+confusionMatrix(as.factor(cv$Class), tree.predict)
+
+# Result
+# 99.93 % accuracy (best) using decision tree.
+```
+Using decision tree model accuracy –> 99.93 % .
+<h5>Evaluation of Decision tree model 1:</h5>
+<p>
+  Simply test the model by compare the Class column in test(cv) dataset. 
+  I will also collect the mean in percentage of the comparison.
+  The percentage is 99.93% which is match with the decision tree model accuracy percentage that found above.
+  Prove that the decision tree model 1 is accuracy.
+  </br></p>
+  
+```{r decisionTree1Evaluation1}
+# This function simply test the accurate of the model by compare the predicting model with the data 
+tree.predict <- predict(tree.model, cv, type = "class")
+confusionMatrix(as.factor(cv$Class), tree.predict)
+mean(tree.predict == cv$Class) 
+```
+<p>Result: 
+- Achieve an overall accurate of 99.93 (test with the test data frame)
+- Fraud: Find 104 out of 148 fraud case, accurate percentage is 70.27%.
+- Non-Fraud: accurate percentage is 99.99%  </p></br>
+
+<p>Test:</p>
+```{r decisionTree1Evaluation2}
+# This function simply test the accurate of the model by compare the predicting model with the data 
+tree.predict <- predict(tree.model, subsetData, type = "class")
+confusionMatrix(as.factor(subsetData$Class), tree.predict)
+mean(tree.predict == subsetData$Class)
+```
+<p>Result: 
+- Achieve an overall accurate of 98.85 (test with the test data frame)
+- Fraud: Find 373 out of 492 fraud case, accurate percentage is 75.81%.
+- Non-Fraud: accurate percentage is 99.9999%  </p></br>
+
+<p>Test:</p>
+```{r decisionTree1Evaluation3}
+# This function simply test the accurate of the model by compare the predicting model with the data 
+tree.predict <- predict(tree.model, fraud.data, type = "class")
+confusionMatrix(as.factor(fraud.data$Class), tree.predict)
+mean(tree.predict == fraud.data$Class)
+```
+<p>Result: 
+- Achieve an overall accurate of 75.81 (test with the ALL FRAUD data frame)
+- Fraud: Find 373 out of 492 fraud case, accurate percentage is 75.81%.</p></br>
+
+<hr class="line"></br>
+</p>
+
+<h5>Decision tree model 2</h5>
+<p>Build the Decision tree Model using the train data subset from the subset data.Methods used is classification with the minimum number of bucket is 20.</p>
+```{r decisionTree2Result, echo=TRUE}
+#Decision tree model
+tree.model.2 <-
+  rpart(Class ~ .,
+        data = train.subset,
+        method = "class",
+        minbucket = 20)
+prp(tree.model.2)
+tree.predict.2 <- predict(tree.model.2, cv.subset, type = "class")
+confusionMatrix(as.factor(cv.subset$Class), tree.predict.2)
+
+# Result
+# 99.97 % accuracy (best) using decision tree.
+```
+
+<h5> Evaluation of Decision tree model 2</h5>
+<p>
+  Simply test the model by compare the Class column in test(cv.subset) dataset. 
+  I will also collect the mean in percentage of the comparison.
+  The percentage is 99.96823% which is match with the decision tree model accuracy percentage that found above.
+  Prove that the decision tree model 2 is accuracy.
+  </br></p>
+```{r decisionTree2Evaluation1}
+# This function simply test the accurate of the model by compare the predicting model with the data 
+tree.predict <- predict(tree.model.2, cv.subset, type = "class")
+confusionMatrix(as.factor(cv.subset$Class), tree.predict)
+mean(tree.predict == cv.subset$Class) 
+```
+<p>Result: 
+- Achieve an overall accurate of 99.97 (test with the test data frame)
+- Fraud: Find 147 out of 148 fraud case, accurate percentage is 99.32%.
+- Non-Fraud: accurate percentage is 100%  </p></br>
+
+<p>Test:</p>
+```{r decisionTree2Evaluation2}
+# This function simply test the accurate of the model by compare the predicting model with the data 
+tree.predict <- predict(tree.model.2, Rdata, type = "class")
+confusionMatrix(as.factor(Rdata$Class), tree.predict)
+mean(tree.predict == subsetData$Class)
+```
+<p>Result: 
+- Achieve an overall accurate of  0.0377  (test with the original data frame)
+- Fraud: Find 489 out of 491 fraud case, accurate percentage is 99.59%.
+- Non-Fraud: accurate percentage is 3.601%  </p></br>
+
+<p>Test:</p>
+```{r decisionTree2Evaluation3}
+# This function simply test the accurate of the model by compare the predicting model with the data 
+tree.predict <- predict(tree.model.2, fraud.data, type = "class")
+confusionMatrix(as.factor(fraud.data$Class), tree.predict)
+mean(tree.predict == fraud.data$Class)
+```
+<p>Result: 
+- Achieve an overall accurate of  99.39  (test with the original data frame)
+- Fraud: Find 489 out of 491 fraud case, accurate percentage is 99.59%.</p></br>
+<hr class="line"></br>
+</p>
+
+### {-}
+
+### <b class="design">Classification and Regression analysis using Support-Vector Machines Model (SVMs)</b>{.tabset}
+
+#### Methodology
+<h5>Task Description</h5>
+<p>In machine learning, support-vector machines (SVMs, also support-vector networks) are supervised learning models with associated learning algorithms that analyze data used for classification and regression analysis.</p>
+<p>We are going to use svm()function in R to construct classsification Model. Please read the description about svm() function and its parameter to understand about this function.</p>
+<p>While the main function is svm() have been display in greater detail, the support confusionMatrix() function and predict() function also describe in shorter detail</p>
+</br>
+
+
+<h5>Algorithm and Parameter</h5>
+```{r svmParameter}
+# SVM FUNCTION
+help_console('svm', "text", lines = 1:129, before = " ", after = " ")
+
+# PREDICT FUNCTION
+help_console('predict', "text", lines = 1:28, before = " ", after = " ")
+```
+</br>
+
+#### Results
+<h5>Results</h5>
+<p>Build the SVM Model using the train data subset from the subset data.</p>
+```{r svmResults}
+svm.model <- svm(Class ~ ., data = train.subset, kernel = "radial", cost = 1, gamma = 0.1)
+svm.predict <- predict(svm.model, cv.subset)
+confusionMatrix(cv.subset$Class, svm.predict)
+
+```
+<p>Match the prediction Model with the test data to test the model.</p>
+<p>In test 1, achieve an accurate of 98.60229% (test with the test data set of the subset data).</p>
+```{r svmEvaluation1, echo=TRUE}
+svm.predict <- predict(svm.model, cv.subset)
+confusionMatrix(cv.subset$Class, svm.predict)
+mean(svm.predict == cv.subset$Class) 
+```
+<p>Result: 
+- Achieve an overall accurate of  0.986  (test with the sample test data frame)
+- Fraud: Find 104 out of 148 fraud case, accurate percentage is 70.27%.
+- Non-Fraud: accurate percentage is 100%  </p></br>
+
+<p>Test:</p>
+<p>In test 2, achieve an overall accurate of 33.07% (test with the test data set of the original data).</p>
+```{r svmEvaluation2, echo=TRUE}
+svm.predict <- predict(svm.model, cv)
+confusionMatrix(cv$Class, svm.predict)
+mean(svm.predict == cv$Class) 
+```
+<p>Result: 
+- Achieve an overall accurate of  0.3307  (test with the test data frame)
+- Fraud: Find 132 out of 148 fraud case, accurate percentage is 89.18%.
+- Non-Fraud: accurate percentage is 32.97%  </p></br>
+
+<p>Test:</p>
+<p>In test 3, achieve an accurate of 33.07% (test with the test entire original data).</p>
+```{r svmEvaluation3, echo=TRUE}
+svm.predict <- predict(svm.model, Rdata)
+confusionMatrix(Rdata$Class, svm.predict)
+mean(svm.predict == Rdata$Class)
+```
+<p>Result: 
+- Achieve an overall accurate of  0.3307  (test with the test data frame)
+- Fraud: Find 132 out of 148 fraud case, accurate percentage is 89.18%.
+- Non-Fraud: accurate percentage is 32.97%  </p></br>
+
+
+<hr class="line"></br>
+</p>
+### {-}
+
+### <b class="design">Predictive Models using Random Forest</b>{.tabset}
+
+#### Methodology
+<h5>Task Description</h5>
+<p>Random forests or random decision forests are an ensemble learning method for classification, regression and other tasks that operate by constructing a multitude of decision trees at training time and outputting the class that is the mode of the classes or mean/average prediction of the individual trees.</p>
+<p>We are going to use randomForest()function of package randomForest in R to construct a decision tree. Please read the description about randomForest() function and its parameter to understand about this function.</p>
+<p>While the main function is randomForest() have been display in greater detail, the support confusionMatrix() function and predict() function also describe in shorter detail</p>
+</br>
+
+
+<h5>Algorithm and Parameter</h5>
+```{r rfParameter}
+# RF FUNCTION
+help_console('rf', "text", lines = 1:129, before = " ", after = " ")
+
+# PREDICT FUNCTION
+help_console('predict', "text", lines = 1:28, before = " ", after = " ")
+```
+<p></br></p>
+
+#### Results
+<h5>Results</h5>
+<p>Build the Random Forest Decision Tree Model using the train data subset from the subset data.</p>
+```{r randomForestModel}
+
+set.seed(100)
+rf.model <- randomForest(Class ~ ., data = train.subset,
+                         ntree = 2000, nodesize = 20)
+
+rf.predict <- predict(rf.model, cv.subset)
+confusionMatrix(cv.subset$Class, rf.predict)
+```
+```{r rfPlot,fig.width=10, fig.height=8}
+varImpPlot(rf.model)
+```
+
+
+<p>In test 1, achieve an accurate of 100% (test with the test sub test of the subset data).</p>
+```{r rfEvaluation1, echo=TRUE}
+rf.predict <- predict(rf.model, cv.subset)
+confusionMatrix(cv.subset$Class, rf.predict)
+mean(rf.predict == cv.subset$Class)
+```
+<p>Result: 
+- Achieve an overall accurate of  100%  (test with the test data frame)
+- Fraud: Find 148 out of 148 fraud case, accurate percentage is 100%.
+- Non-Fraud: accurate percentage is 100%  </p></br>
+
+<p>Test:</p>
+<p>In test 2, achieve an accurate of 3.82% (test with the sub test of the original data ).</p>
+```{r rfEvaluation2, echo=TRUE}
+rf.predict <- predict(rf.model, cv)
+confusionMatrix(cv$Class, rf.predict)
+mean(rf.predict == cv$Class)
+```
+<p>Result: 
+- Achieve an overall accurate of  0.0382  (test with the test data frame)
+- Fraud: Find 148 out of 148 fraud case, accurate percentage is 100%.
+- Non-Fraud: accurate percentage is 0.037%  </p></br>
+
+<p>Test:</p>
+<p>In test 3, achieve an accurate of 3.77% (test with the entire original data ).</p>
+```{r rfEvaluation3, echo=TRUE}
+rf.predict <- predict(rf.model, Rdata)
+confusionMatrix(Rdata$Class, rf.predict)
+mean(rf.predict == Rdata$Class)
+```
+<p>Result: 
+- Achieve an overall accurate of  0.0377  (test with the entire data frame)
+- Fraud: Find 490 out of 492 fraud case, accurate percentage is 99.59%.
+- Non-Fraud: accurate percentage is 0.036%  </p></br>
+
+<p>Test:</p>
+<p>In test 4, achieve an accurate of 99.59% (test with the fraud data ).</p>
+```{r rfEvaluation4, echo=TRUE}
+rf.predict <- predict(rf.model, fraud.data)
+confusionMatrix(fraud.data$Class, rf.predict)
+mean(rf.predict == fraud.data$Class)
+```
+<p>Result: 
+- Achieve an overall accurate of  99.59.0377  (test with the entire data frame)
+- Fraud: Find 490 out of 492 fraud case, accurate percentage is 99.59%.</p></br>
+
+### {-}
+
+## Conclusion
+<p>Many algorithms and data-mining methods have been test and applied to the training dataset (fraud credit card). I took different approach to analyze interesting pattern in the data set.</p>
+<p>I also take different approach for the training data (split the data, create factor value, get sample from the original data.). Un-success approach include:
+- Clustering Models using k means.
+- DBSCAN
+- Dimension Reduction
+- Elbow method
+- Shilhouette method
+Success approach include: 
+- Random Forest Predictive Model (99.56 % average on fraud transactions)
+- Regression Decision Tree Predictive Model (models 1 with 99.9999% on non-fraud transactions and model 2 with 99.59% test case on fraud transactions)
+- Support-Vector Machines Models (89.18 % average on fraud transactions)
+- Generalized Linear Model (99.988 % average on non-fraud transactions)
+- Density-graph, that hypothesis can be made from there. 
+In general, the research model will be able to recognize and detect fraud and non fraud transactions in the data set. In other to use it properly for an fraud detection application, choosing what models for what purpose is importance (Random Forest to detect fraud (99.59%); GLM and  Decision Tree model 1 (99.999 %) to verify non-fraud transaction).  
+</br>
+</p>
+
+<hr>
+## References
+<p>Kurgan, L., & Musilek, P.(n.d.) <i>A survey of Knowledge Discovery and Data Mining process models, The Knowledge Engineering Review</i>, Vol. 21:1, 1–24. Retrieved from http://biomine.cs.vcu.edu/papers/KER-KDDM2006.pdf </p>
+<p>Macaraeg, R., (2019, Sep. 5)<i>Credit Card Fraud Detection: Staying Vigilant in the Virtual World.</i> Retrieved from: https://towardsdatascience.com/credit-card-fraud-detection-a1c7e1b75f59 </p>
+<p>Machine Learning Group,(2018)<i>Credit Card Fraud Detection: Anonymized credit card transactions labeled as fraudulent or genuine.</i> Retrieved from: https://www.kaggle.com/mlg-ulb/creditcardfraud </p>
+<p>Patil. S., Nemade. V., & Soni, P. (2018)  <i>International Conference on Computational Intelligence and Data Science. Predictive Modelling For Credit Card Fraud Detection Using Data Analytics.</i> Retrieved from https://www.researchgate.net/publication/325663203_Predictive_Modelling_For_Credit_Card_Fraud_Detection_Using_Data_Analytic</p>
+<p>Pozzolo A., Caelen O., Johnson R. & Bontempi G.(2015) <i>Calibrating Probability with Undersampling for Unbalanced Classification.</i> In Symposium on Computational Intelligence and Data Mining (CIDM), IEEE</p>
+<p>Pozzolo A.; Olivier C.; Yann-Ael B.; Serge; Gianluca B.(2014) <i>Learned lessons in credit card fraud detection from a practitioner perspective, Expert systems with applications</i>,41,10,4915-4928, Pergamon</p>
+<p>Preda. G., (2020) Credit Card Fraud Detection Predictive Models. Retrieved from https://www.kaggle.com/gpreda/credit-card-fraud-detection-predictive-models</p>
+<p>Sanagapati. P., (2019) Anomaly Detection - Credit Card Fraud Analysis. Retrieved from https://www.kaggle.com/pavansanagapati/anomaly-detection-credit-card-fraud-analysis</p>
+<p>Visallo (n.d.) <i>Credit Card Fraud Detection 2019</i> Retrieved from https://www.visallo.com/blog/credit-card-fraud-detection-2019/</p>
