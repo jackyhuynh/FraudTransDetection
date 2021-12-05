@@ -5,7 +5,7 @@ The project focus on creating Fraud Detection Application to detect fraudulent c
 
 ![alt](https://github.com/jackyhuynh/realtimeFraudDetectionModels-app/blob/main/src/picture/testTable.PNG)
 
-My application will be built from various data mining and model prediction methods. The combination of them will increase the change to prevent fraud detection. The disadvantage of this is the response time to end-users as many layers of detection will add more execution time to the application (O(log(n))).
+My application will be built from various data mining model and prediction methods. The combination of them will increase the change to prevent fraud detection. The disadvantage of this is the response time to end-users as many layers of detection will add more execution time to the application (O(log(n))).
 Please click [here](https://github.com/jackyhuynh/realtimeFraudDetectionModels-app/blob/main/src/Report.pdf) for the full statistic and prediction. 
 
 ![alt](https://github.com/jackyhuynh/realtimeFraudDetectionModels-app/blob/main/src/picture/operationDiagram.PNG)
